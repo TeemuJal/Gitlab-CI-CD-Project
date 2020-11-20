@@ -1,0 +1,61 @@
+version: "3"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - mq-network
+      
+  orig:
+    depends_on:
+      - "rabbitmq"
+    command: ["/original/utils/wait-for-it.sh", "rabbitmq:5672", "-t", "30", "-s", "--", "node", "app.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./original
+    networks:
+      - mq-network
+
+  imed:
+    depends_on:
+      - "rabbitmq"
+    command: ["/intermediate/utils/wait-for-it.sh", "rabbitmq:5672", "-t", "30", "-s", "--", "node", "app.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./intermediate
+    networks:
+      - mq-network
+
+  obse:
+    depends_on:
+      - "rabbitmq"
+    command: ["/observer/utils/wait-for-it.sh", "rabbitmq:5672", "-t", "30", "-s", "--", "node", "app.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./observer
+    networks:
+      - mq-network
+    volumes:
+      - ./message-store:/var/lib/messages
+
+  httpserv:
+    command: ["node", "app.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./http-service
+    ports:
+      - "8080:8080"
+    networks:
+      - mq-network
+    volumes:
+        - ./message-store:/var/lib/messages
+
+networks:
+  mq-network:
+      driver: "bridge"
+
+volumes:
+  message-store:
