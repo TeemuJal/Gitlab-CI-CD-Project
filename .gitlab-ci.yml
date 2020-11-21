@@ -1,15 +1,15 @@
-image: docker/compose:latest
+image: docker:latest
 
 services:
   - docker:dind
 
 before_script:
-  - export DOCKER_HOST="${HOSTNAME}-docker"
   - docker info
-  - docker-compose version
 
 build:
   stage: build
+  image: hmajid2301/dind-docker-compose
   script:
+    - docker-compose version
     - docker ps -a
 
