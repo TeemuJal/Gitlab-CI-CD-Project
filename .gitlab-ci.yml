@@ -1,7 +1,7 @@
-image: docker:latest
+image: tmaier/docker-compose:latest
 
 services:
-  - hmajid2301/dind-docker-compose
+  - docker:dind
 
 before_script:
   - docker info
