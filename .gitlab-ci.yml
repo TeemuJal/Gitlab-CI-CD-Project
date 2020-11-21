@@ -1,14 +1,14 @@
 image: docker:latest
 
 services:
-  - docker:dind
+  - hmajid2301/dind-docker-compose
 
 before_script:
   - docker info
+  - docker-compose version
 
 build:
   stage: build
-  image: hmajid2301/dind-docker-compose
   script:
     - docker-compose version
     - docker ps -a
