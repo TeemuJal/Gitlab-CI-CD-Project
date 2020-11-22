@@ -21,7 +21,7 @@ test:
   before_script:
     - apk add --update curl && rm -rf /var/cache/apk/*
   script:
-    - curl localhost:8082
+    - curl http://httpserv
 
 cleanup:
   stage: .post
