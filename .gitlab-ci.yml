@@ -10,6 +10,6 @@ before_script:
 build:
   stage: build
   script:
-    - docker-compose version
+    - docker-compose up -d
     - docker ps -a
 
