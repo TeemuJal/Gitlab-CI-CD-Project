@@ -1,15 +1,29 @@
 image: tmaier/docker-compose:latest
 
+stages:
+  - build
+  - test
+
 services:
   - docker:dind
 
-before_script:
-  - docker info
-  - docker-compose version
-
 build:
   stage: build
+  before_script:
+    - docker info
+    - docker-compose version
   script:
-    - docker-compose up -d
-    - docker ps -a
+    - docker-compose -f docker-compose.yml build --no-cache
+    - docker-compose -f docker-compose.yml up -d
 
+test:
+  stage: test
+  before_script:
+    - apk add --update curl && rm -rf /var/cache/apk/*
+  script:
+    - curl localhost:8082
+
+cleanup:
+  stage: .post
+  script:
+    - docker-compose -f docker-compose.yml down
