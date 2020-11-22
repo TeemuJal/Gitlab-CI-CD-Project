@@ -27,3 +27,4 @@ cleanup:
   stage: .post
   script:
     - docker-compose -f docker-compose.yml down
+  when: always
