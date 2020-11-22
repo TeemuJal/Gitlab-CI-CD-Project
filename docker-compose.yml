@@ -55,6 +55,8 @@ services:
 
 networks:
   mq-network:
+      external: 
+        name: gitlab-network
       driver: "bridge"
 
 volumes:
