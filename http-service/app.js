@@ -1,7 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 
-const port = 8080;
+const port = 8082;
 
 const server = http.createServer((req, res) => {
   fs.readFile("/var/lib/messages/messages.txt", function(err, data) {
