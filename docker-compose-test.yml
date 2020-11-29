@@ -1,0 +1,8 @@
+version: "3"
+
+services:
+  tests:
+    command: ["npm", "run", "test" ]
+    build:
+      dockerfile: Dockerfile.tests
+      context: .
