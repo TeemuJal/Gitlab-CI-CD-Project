@@ -42,7 +42,7 @@ services:
       - ./message-store:/var/lib/messages
 
   httpserv:
-    command: ["node", "app.js"]
+    command: ["node", "start.js"]
     build:
       dockerfile: Dockerfile
       context: ./http-service

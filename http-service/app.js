@@ -1,8 +1,6 @@
 const http = require("http");
 const fs = require("fs");
 
-const port = 8082;
-
 const server = http.createServer((req, res) => {
   fs.readFile("/var/lib/messages/messages.txt", function(err, data) {
     res.statusCode = 200;
@@ -16,6 +14,4 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(port, () => {
-  console.log(`Http-service listening on port ${port}/`);
-});
+module.exports = server;
