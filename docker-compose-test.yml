@@ -6,3 +6,8 @@ services:
     build:
       dockerfile: Dockerfile.tests
       context: .
+    volumes:
+      - ./message-store:/var/lib/messages
+
+volumes:
+  message-store:
