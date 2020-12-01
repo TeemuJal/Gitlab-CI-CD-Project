@@ -1,13 +1,79 @@
 version: "3"
 
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    expose:
+      - "5672"
+    networks:
+      - test-network
+      
+  orig:
+    depends_on:
+      - "rabbitmq"
+    command: ["/original/utils/wait-for-it.sh", "rabbitmq:5672", "-t", "30", "-s", "--", "node", "app.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./original
+    networks:
+      - test-network
+
+  imed:
+    depends_on:
+      - "rabbitmq"
+    command: ["/intermediate/utils/wait-for-it.sh", "rabbitmq:5672", "-t", "30", "-s", "--", "node", "app.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./intermediate
+    networks:
+      - test-network
+
+  obse:
+    depends_on:
+      - "rabbitmq"
+    command: ["/observer/utils/wait-for-it.sh", "rabbitmq:5672", "-t", "30", "-s", "--", "node", "app.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./observer
+    networks:
+      - test-network
+    volumes:
+      - ./test-message-store:/var/lib/messages
+
+  httpserv:
+    command: ["node", "start.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./http-service
+    networks:
+      - test-network
+    volumes:
+        - ./test-message-store:/var/lib/messages
+
+  api-gateway:
+    depends_on: 
+      - "httpserv"
+    command: ["node", "start.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./api-gateway
+    networks:
+      - test-network
+
   tests:
+    depends_on: 
+      - "api-gateway"
     command: ["npm", "run", "test" ]
     build:
       dockerfile: Dockerfile.tests
       context: .
     volumes:
-      - ./message-store:/var/lib/messages
+      - ./test-message-store:/var/lib/messages
+    networks:
+      - test-network
 
 volumes:
-  message-store:
+  test-message-store:
+
+networks: 
+  test-network:

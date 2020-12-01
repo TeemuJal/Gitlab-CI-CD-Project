@@ -117,6 +117,7 @@ dist
 
 *.docx
 message-store/
+test-message-store/
 gitlab-config/
 gitlab-data/
 gitlab-logs/
