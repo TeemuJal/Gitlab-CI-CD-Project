@@ -2,7 +2,7 @@ image: tmaier/docker-compose:latest
 
 stages:
   - test
-  - build
+  #- build
 
 services:
   - docker:dind
@@ -15,8 +15,8 @@ test:
   script:
     - docker-compose -f docker-compose-test.yml -p ci_test run --rm tests
 
-build:
-  stage: build
+#build:
+  #stage: build
   # script:
     # - docker-compose -f docker-compose.yml build --no-cache
     # - docker-compose -f docker-compose.yml up -d
