@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 const app = require("../../api-gateway/app.js");
 const supertest = require("supertest");
 const server = supertest(app);
