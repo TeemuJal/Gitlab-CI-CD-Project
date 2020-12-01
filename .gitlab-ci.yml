@@ -1,30 +1,29 @@
 image: tmaier/docker-compose:latest
 
 stages:
-  - build
   - test
+  - build
 
 services:
   - docker:dind
 
-build:
-  stage: build
-  before_script:
-    - docker info
-    - docker-compose version
-  script:
-    - docker-compose -f docker-compose.yml build --no-cache
-    - docker-compose -f docker-compose.yml up -d
-    - docker-compose -f docker-compose-test.yml build --no-cache
-
 test:
   stage: test
+  before_script:
+    - docker-compose -f docker-compose-test.yml -p ci_test build --no-cache
+    - docker-compose -f docker-compose-test.yml -p ci_test up -d rabbitmq orig imed obse httpserv api-gateway
   script:
-    - docker-compose -f docker-compose-test.yml run --rm tests
+    - docker-compose -f docker-compose-test.yml -p ci_test run --rm tests
+
+build:
+  stage: build
+  # script:
+    # - docker-compose -f docker-compose.yml build --no-cache
+    # - docker-compose -f docker-compose.yml up -d
 
 cleanup:
   stage: .post
   script:
-    - docker-compose -f docker-compose.yml down
-    - docker-compose -f docker-compose-test.yml down
+    # - docker-compose -f docker-compose.yml down
+    - docker-compose -f docker-compose-test.yml -p ci_test down
   when: always
