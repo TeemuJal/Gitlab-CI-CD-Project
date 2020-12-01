@@ -53,6 +53,18 @@ services:
     volumes:
         - ./message-store:/var/lib/messages
 
+  api-gateway:
+    depends_on: 
+      - "httpserv"
+    command: ["node", "start.js"]
+    build:
+      dockerfile: Dockerfile
+      context: ./api-gateway
+    ports:
+      - "8081:8081"
+    networks:
+      - mq-network
+
 networks:
   mq-network:
       external: 
