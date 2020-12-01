@@ -1,3 +1,5 @@
 FROM node:10.22.1-alpine3.9
-COPY . .
+COPY api-gateway/app.js api-gateway/
+COPY http-service/app.js http-service/
+COPY tests/ package-lock.json package.json ./
 RUN npm install --silent
