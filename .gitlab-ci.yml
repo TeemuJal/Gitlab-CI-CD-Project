@@ -12,6 +12,7 @@ test:
   before_script:
     - docker-compose -f docker-compose-test.yml -p ci_test build --no-cache
     - docker-compose -f docker-compose-test.yml -p ci_test up -d rabbitmq orig imed obse httpserv api-gateway
+    - sleep 20 # Wait for some messages to be registered
   script:
     - docker-compose -f docker-compose-test.yml -p ci_test run --rm tests
 
