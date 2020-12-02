@@ -11,7 +11,7 @@ services:
   orig:
     depends_on:
       - "rabbitmq"
-    command: ["/original/utils/wait-for-it.sh", "rabbitmq:5672", "-t", "30", "-s", "--", "node", "app.js"]
+    command: ["/original/utils/wait-for-it.sh", "rabbitmq:5672", "-t", "30", "-s", "--", "node", "start.js"]
     build:
       dockerfile: Dockerfile
       context: ./original
