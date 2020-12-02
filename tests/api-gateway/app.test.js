@@ -22,10 +22,10 @@ describe("GET /messages", () =>{
 });
 
 describe("PUT /state", () =>{ 
-  test("Test setting ORIG service's state to PAUSED", async done => {
+  test("Test setting system's state to PAUSED", async done => {
     jest.setTimeout(8000);
 
-    // Set ORIG service to not send anymore messages
+    // Set system's state to PAUSED
     const res = await server.put("/state/PAUSED");
     expect(res.status).toBe(200);
     
@@ -47,8 +47,15 @@ describe("PUT /state", () =>{
       new_messages = data;
     });
 
-    // Check responses are the same i.e. setting ORIG to PAUSED state was successful
+    // Check responses are the same i.e. setting system to PAUSED state was successful
     expect(new_messages).toBe(original_messages);
+    done();
+  });
+
+  test("Test setting system's state to an invalid state", async done => {
+    // Set system to an invalid state
+    const res = await server.put("/state/INVALIDSTATE");
+    expect(res.status).toBe(400);
     done();
   });
 });
