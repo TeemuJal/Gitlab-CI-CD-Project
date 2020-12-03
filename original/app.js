@@ -19,6 +19,11 @@ app.post("/pause", function (req, res){
     res.status(200).send("ORIG paused");
 });
 
+app.post("/reset_message_counter", function (req, res) {
+    msg_counter = 0;
+    res.status(200).send("Message counter reset");
+});
+
 // Publish a message to the queue
 function publishMessageToQueue() {
     msg_counter += 1;

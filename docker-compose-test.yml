@@ -44,6 +44,8 @@ services:
       - ./test-message-store:/var/lib/messages
 
   httpserv:
+    depends_on:
+      - "obse"
     command: ["node", "start.js"]
     build:
       dockerfile: Dockerfile
@@ -64,6 +66,8 @@ services:
       network: host
     networks:
       - test-network
+    volumes:
+      - ./test-message-store:/var/lib/messages
 
   tests:
     depends_on: 

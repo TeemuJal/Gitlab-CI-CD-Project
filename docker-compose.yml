@@ -58,7 +58,7 @@ services:
     networks:
       - mq-network
     volumes:
-        - ./message-store:/var/lib/messages
+      - ./message-store:/var/lib/messages
 
   api-gateway:
     depends_on: 
@@ -72,12 +72,14 @@ services:
       - "8081:8081"
     networks:
       - mq-network
+    volumes:
+      - ./message-store:/var/lib/messages
 
 networks:
   mq-network:
-      external: 
-        name: gitlab-network
-      driver: "bridge"
+    external: 
+      name: gitlab-network
+    driver: "bridge"
 
 volumes:
   message-store:
