@@ -84,7 +84,7 @@ describe("PUT /state", () => {
   });
 
   test("Test setting system's state to INIT", async done => {
-    jest.setTimeout(6000);
+    jest.setTimeout(7000);
     
     // Set system's state to PAUSED
     const res_paused = await server.put("/state/PAUSED");
@@ -98,13 +98,15 @@ describe("PUT /state", () => {
     expect(res_state_paused.status).toBe(200);
 
     // Wait to see if system was put into RUNNING state again
-    await sleep(3000);
+    await sleep(5000);
 
     // Fetch messages from the file after system is RUNNING again
     const messages_after_init = fs.readFileSync("/var/lib/messages/messages.txt", "utf8");
 
     // Check length of messages before INIT is longer than after i.e. setting system to INIT state was successful
     expect(messages_before_init.length).toBeGreaterThan(messages_after_init.length);
+    // Check that first line ends with 1 i.e. message counter was reset and we got message "Got_1"
+    expect(messages_after_init.charAt(41)).toBe("1");
     done();
   });
 
