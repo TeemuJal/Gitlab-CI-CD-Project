@@ -33,19 +33,13 @@ describe("PUT /state", () => {
     await sleep(1000);
 
     // Fetch messages from the file
-    let original_messages;
-    fs.readFileSync("/var/lib/messages/messages.txt", function(err, data) {
-      original_messages = data;
-    });
+    const original_messages = fs.readFileSync("/var/lib/messages/messages.txt", "utf8");
 
     // Wait to see if new messages are registered
     await sleep(4000);
 
     // Fetch messages from the file
-    let new_messages;
-    fs.readFileSync("/var/lib/messages/messages.txt", function(err, data) {
-      new_messages = data;
-    });
+    const new_messages = fs.readFileSync("/var/lib/messages/messages.txt", "utf8");
 
     // Check responses are the same i.e. setting system to PAUSED state was successful
     expect(new_messages).toBe(original_messages);
@@ -63,23 +57,17 @@ describe("PUT /state", () => {
     await sleep(1000);
 
     // Fetch messages from the file
-    let original_messages;
-    fs.readFileSync("/var/lib/messages/messages.txt", function(err, data) {
-      original_messages = data;
-    });
+    const original_messages = fs.readFileSync("/var/lib/messages/messages.txt", "utf8");
 
     // Set system's state to RUNNING
     const res_state_running = await server.put("/state/RUNNING");
     expect(res_state_running.status).toBe(200);
 
     // Wait to see if new messages are registered
-    await sleep(4000);
+    await sleep(5000);
 
     // Fetch messages from the file
-    let new_messages;
-    fs.readFileSync("/var/lib/messages/messages.txt", function(err, data) {
-      new_messages = data;
-    });
+    const new_messages = fs.readFileSync("/var/lib/messages/messages.txt", "utf8");
 
     // Check responses are not the same i.e. setting system to RUNNING state was successful
     expect(new_messages).not.toBe(original_messages);
