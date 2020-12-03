@@ -7,6 +7,8 @@ const supertest = require("supertest");
 const fs = require("fs");
 let server;
 
+const system_containers = ["orig-test", "imed-test", "obse-test", "httpserv-test", "rabbitmq-test"];
+
 beforeEach(() => {
   server = supertest(app);
 });
@@ -83,7 +85,14 @@ describe("PUT /state", () => {
     done();
   });
 
-  test("Test setting system's state to INIT", async done => {
+  test("Test setting system's state to an invalid state", async done => {
+    // Set system to an invalid state
+    const res = await server.put("/state/INVALIDSTATE");
+    expect(res.status).toBe(400);
+    done();
+  });
+
+  test("Test setting system's state to INIT while system is up", async done => {
     jest.setTimeout(7000);
     
     // Set system's state to PAUSED
@@ -110,10 +119,21 @@ describe("PUT /state", () => {
     done();
   });
 
-  test("Test setting system's state to an invalid state", async done => {
-    // Set system to an invalid state
-    const res = await server.put("/state/INVALIDSTATE");
-    expect(res.status).toBe(400);
+  test("Test setting system's state to SHUTDOWN", async done => {
+    jest.setTimeout(30000);
+    
+    // Set system's state to PAUSED
+    const res = await server.put("/state/SHUTDOWN");
+    expect(res.status).toBe(200);
+
+    // Wait for containers to stop
+    await sleep(15000);
+
+    // Check that all containers have been stopped with API gateway's /container-running endpoint
+    for (const container in system_containers) {
+      const container_running = await server.get(`/container-running/${system_containers[container]}`)
+      expect(container_running).not.toBe(true);
+    }
     done();
   });
 });
