@@ -1,4 +1,4 @@
-image: tmaier/docker-compose:latest
+image: tmaier/docker-compose:19.03
 
 stages:
   - test
