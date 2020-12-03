@@ -74,6 +74,15 @@ describe("PUT /state", () => {
     done();
   });
 
+  test("Test setting system's state to the same state", async done => {
+    // Set system to RUNNING again since default state is RUNNING
+    const res = await server.put("/state/RUNNING");
+    expect(res.status).toBe(200);
+    const res2 = await server.put("/state/RUNNING");
+    expect(res2.text).toBe("State is already RUNNING.");
+    done();
+  });
+
   test("Test setting system's state to an invalid state", async done => {
     // Set system to an invalid state
     const res = await server.put("/state/INVALIDSTATE");
