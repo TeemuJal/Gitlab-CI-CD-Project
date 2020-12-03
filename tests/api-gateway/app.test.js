@@ -83,6 +83,31 @@ describe("PUT /state", () => {
     done();
   });
 
+  test("Test setting system's state to INIT", async done => {
+    jest.setTimeout(6000);
+    
+    // Set system's state to PAUSED
+    const res_paused = await server.put("/state/PAUSED");
+    expect(res_paused.status).toBe(200);
+
+    // Fetch current messages from the file
+    const messages_before_init = fs.readFileSync("/var/lib/messages/messages.txt", "utf8");
+
+    // Set system's state to INIT
+    const res_state_paused = await server.put("/state/INIT");
+    expect(res_state_paused.status).toBe(200);
+
+    // Wait to see if system was put into RUNNING state again
+    await sleep(3000);
+
+    // Fetch messages from the file after system is RUNNING again
+    const messages_after_init = fs.readFileSync("/var/lib/messages/messages.txt", "utf8");
+
+    // Check length of messages before INIT is longer than after i.e. setting system to INIT state was successful
+    expect(messages_before_init.length).toBeGreaterThan(messages_after_init.length);
+    done();
+  });
+
   test("Test setting system's state to an invalid state", async done => {
     // Set system to an invalid state
     const res = await server.put("/state/INVALIDSTATE");
