@@ -11,7 +11,7 @@ beforeEach(() => {
   server = supertest(app);
 });
 
-describe("GET /messages", () =>{ 
+describe("GET /messages", () => { 
   test("Test that endpoint returns all messages registered with OBSE-service", async done => {
     const res = await server.get("/messages");
   
@@ -21,7 +21,7 @@ describe("GET /messages", () =>{
   });
 });
 
-describe("PUT /state", () =>{ 
+describe("PUT /state", () => { 
   test("Test setting system's state to PAUSED", async done => {
     jest.setTimeout(8000);
 
@@ -49,6 +49,40 @@ describe("PUT /state", () =>{
 
     // Check responses are the same i.e. setting system to PAUSED state was successful
     expect(new_messages).toBe(original_messages);
+    done();
+  });
+
+  test("Test setting system's state to RUNNING", async done => {
+    jest.setTimeout(8000);
+
+    // Set system's state to PAUSED
+    const res_state_paused = await server.put("/state/PAUSED");
+    expect(res_state_paused.status).toBe(200);
+    
+    // Wait for currently queued messages to be registered
+    await sleep(1000);
+
+    // Fetch messages from the file
+    let original_messages;
+    fs.readFileSync("/var/lib/messages/messages.txt", function(err, data) {
+      original_messages = data;
+    });
+
+    // Set system's state to RUNNING
+    const res_state_running = await server.put("/state/RUNNING");
+    expect(res_state_running.status).toBe(200);
+
+    // Wait to see if new messages are registered
+    await sleep(4000);
+
+    // Fetch messages from the file
+    let new_messages;
+    fs.readFileSync("/var/lib/messages/messages.txt", function(err, data) {
+      new_messages = data;
+    });
+
+    // Check responses are not the same i.e. setting system to RUNNING state was successful
+    expect(new_messages).not.toBe(original_messages);
     done();
   });
 
