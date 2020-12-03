@@ -3,7 +3,8 @@ const app = express();
 const axios = require("axios");
 
 const states = {
-  PAUSED: "PAUSED"
+  PAUSED: "PAUSED",
+  RUNNING: "RUNNING"
 };
 
 // Endpoint for getting all registered messages
@@ -23,7 +24,8 @@ app.put("/state/:new_state", async function (req, res) {
   // Check if given state is a valid state
   if (Object.values(states).indexOf(new_state) > -1) {
     switch(new_state) {
-      case states.PAUSED:
+        // Pause ORIG
+        case states.PAUSED: {
         try {
           const response = await axios.post("http://orig:5000/pause");
           res.send(response.data);
@@ -31,7 +33,20 @@ app.put("/state/:new_state", async function (req, res) {
           console.error(error);
           res.status(500).send("Something went wrong.");
         } 
+          break;
     }
+        // Start ORIG
+        case states.RUNNING: {
+          try {
+            const response = await axios.post("http://orig:5000/start");
+            res.send(response.data);
+          } catch (error) {
+            console.error(error);
+            res.status(500).send("Something went wrong.");
+          } 
+          break;
+        }
+      }
   } else {
     res.status(400).send("Invalid state.");
   } 
