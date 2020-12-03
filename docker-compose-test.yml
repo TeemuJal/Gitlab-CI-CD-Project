@@ -3,6 +3,7 @@ version: "3"
 services:
   rabbitmq:
     image: rabbitmq:3-management
+    container_name: rabbitmq-test
     expose:
       - "5672"
     networks:
@@ -16,6 +17,7 @@ services:
       dockerfile: Dockerfile
       context: ./original
       network: host
+    container_name: orig-test
     networks:
       - test-network
 
@@ -27,6 +29,7 @@ services:
       dockerfile: Dockerfile
       context: ./intermediate
       network: host
+    container_name: imed-test
     networks:
       - test-network
 
@@ -38,6 +41,7 @@ services:
       dockerfile: Dockerfile
       context: ./observer
       network: host
+    container_name: obse-test
     networks:
       - test-network
     volumes:
@@ -51,6 +55,7 @@ services:
       dockerfile: Dockerfile
       context: ./http-service
       network: host
+    container_name: httpserv-test
     networks:
       - test-network
     volumes:
@@ -64,10 +69,15 @@ services:
       dockerfile: Dockerfile
       context: ./api-gateway
       network: host
+    container_name: api-gateway-test
+    environment: 
+      - NODE_ENV=test
     networks:
       - test-network
     volumes:
       - ./test-message-store:/var/lib/messages
+      # Docker socket to run docker commands from inside the container
+      - //var/run/docker.sock:/var/run/docker.sock
 
   tests:
     depends_on: 
@@ -77,10 +87,14 @@ services:
       dockerfile: Dockerfile.tests
       context: .
       network: host
-    volumes:
-      - ./test-message-store:/var/lib/messages
+    container_name: tests
     networks:
       - test-network
+    volumes:
+      - ./test-message-store:/var/lib/messages
+      # Docker socket to run docker commands from inside the container
+      - //var/run/docker.sock:/var/run/docker.sock
+
 
 volumes:
   test-message-store:

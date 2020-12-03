@@ -2,14 +2,23 @@ const express = require("express");
 const app = express();
 const axios = require("axios");
 const fs = require("fs");
+const {execFile} = require("child_process");
 
 const states = {
   PAUSED: "PAUSED",
   RUNNING: "RUNNING",
-  INIT: "INIT"
+  INIT: "INIT",
+  SHUTDOWN: "SHUTDOWN"
 };
 
 let current_state = states.RUNNING;
+
+let system_containers;
+if (process.env.NODE_ENV === "test") {
+  system_containers = ["orig-test", "imed-test", "obse-test", "httpserv-test", "rabbitmq-test"];
+} else {
+  system_containers = ["orig", "imed", "obse", "httpserv", "rabbitmq"];
+}
 
 // Endpoint for getting all registered messages
 app.get("/messages", async function (req, res) {
@@ -69,6 +78,33 @@ app.put("/state/:new_state", async function (req, res) {
             await axios.post("http://orig:5000/start");
             current_state = states.RUNNING;
             res.send("System initialized");
+          } catch (error) {
+            console.error(error);
+            res.status(500).send("Something went wrong.");
+          } 
+          break;
+        }
+        // Shut down the system
+        case states.SHUTDOWN: {
+          try {
+            // Pause ORIG
+            await axios.post("http://orig:5000/pause");
+
+            let dockerArguments = ["stop"];
+            for (const container in system_containers) {
+              dockerArguments.push(system_containers[container]);
+            }
+            // Stop containers
+            execFile("docker", dockerArguments, (error, stdout) => {
+              if (error) {
+                console.error(error);
+                res.status(500).send("Something went wrong.");
+              } else {
+                console.log(stdout);
+                const stopped_containers = stdout.split("\n").slice(0, -1);
+                res.send({ msg: "System shut down", stopped_containers: stopped_containers});
+              }
+            });
           } catch (error) {
             console.error(error);
             res.status(500).send("Something went wrong.");
