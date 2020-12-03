@@ -17,6 +17,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./original
+      network: host
     expose:
       - "5000"
     networks:
@@ -29,6 +30,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./intermediate
+      network: host
     networks:
       - mq-network
 
@@ -39,6 +41,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./observer
+      network: host
     networks:
       - mq-network
     volumes:
@@ -49,6 +52,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./http-service
+      network: host
     ports:
       - "8082:8082"
     networks:
@@ -63,6 +67,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./api-gateway
+      network: host
     ports:
       - "8081:8081"
     networks:

@@ -15,6 +15,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./original
+      network: host
     networks:
       - test-network
 
@@ -25,6 +26,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./intermediate
+      network: host
     networks:
       - test-network
 
@@ -35,6 +37,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./observer
+      network: host
     networks:
       - test-network
     volumes:
@@ -45,6 +48,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./http-service
+      network: host
     networks:
       - test-network
     volumes:
@@ -57,6 +61,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./api-gateway
+      network: host
     networks:
       - test-network
 
@@ -67,6 +72,7 @@ services:
     build:
       dockerfile: Dockerfile.tests
       context: .
+      network: host
     volumes:
       - ./test-message-store:/var/lib/messages
     networks:
