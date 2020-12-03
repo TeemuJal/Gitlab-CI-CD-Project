@@ -120,20 +120,16 @@ describe("PUT /state", () => {
   });
 
   test("Test setting system's state to SHUTDOWN", async done => {
-    jest.setTimeout(30000);
+    jest.setTimeout(20000);
     
-    // Set system's state to PAUSED
+    // Set system's state to SHUTDOWN
     const res = await server.put("/state/SHUTDOWN");
     expect(res.status).toBe(200);
+    
+    const stopped_containers = res.body.stopped_containers;
 
-    // Wait for containers to stop
-    await sleep(15000);
-
-    // Check that all containers have been stopped with API gateway's /container-running endpoint
-    for (const container in system_containers) {
-      const container_running = await server.get(`/container-running/${system_containers[container]}`)
-      expect(container_running).not.toBe(true);
-    }
+    // Confirm that all containers were stopped
+    expect(stopped_containers).toEqual(system_containers);
     done();
   });
 });
