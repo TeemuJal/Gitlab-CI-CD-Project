@@ -2,7 +2,8 @@ image: tmaier/docker-compose:19.03
 
 stages:
   - test
-  #- build
+  - build
+  - deploy
 
 services:
   - docker:dind
@@ -15,16 +16,15 @@ test:
     - sleep 30 # Wait for services to start and some messages to be registered
   script:
     - docker-compose -f docker-compose-test.yml -p ci_test run --rm tests
-
-#build:
-  #stage: build
-  # script:
-    # - docker-compose -f docker-compose.yml build --no-cache
-    # - docker-compose -f docker-compose.yml up -d
-
-cleanup:
-  stage: .post
-  script:
-    # - docker-compose -f docker-compose.yml down
+  after_script:
     - docker-compose -f docker-compose-test.yml -p ci_test down
-  when: always
+
+build:
+  stage: build
+  script:
+    - docker-compose -f docker-compose.yml build --no-cache
+
+deploy:
+  stage: deploy
+  script:
+    - docker-compose -f docker-compose.yml up -d
