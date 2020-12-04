@@ -114,7 +114,7 @@ describe("PUT /state", () => {
 
     // Check length of messages before INIT is longer than after i.e. setting system to INIT state was successful
     expect(messages_before_init.length).toBeGreaterThan(messages_after_init.length);
-    // Check that first line ends with 1 i.e. message counter was reset and we got message "Got_1"
+    // Check that first line ends with '1' i.e. message counter was reset and we got message "Got_1"
     expect(messages_after_init.charAt(41)).toBe("1");
     done();
   });
@@ -130,6 +130,20 @@ describe("PUT /state", () => {
 
     // Confirm that all containers were stopped
     expect(stopped_containers).toEqual(system_containers);
+    done();
+  });
+
+  test("Test setting system's state to INIT while system is down", async done => {
+    jest.setTimeout(30000);
+    
+    // Set system's state to INIT to start all containers
+    const res = await server.put("/state/INIT");
+    expect(res.status).toBe(200);
+
+    const started_containers = res.body.started_containers;
+
+    // Confirm that all containers were started
+    expect(started_containers).toEqual(system_containers);
     done();
   });
 });
