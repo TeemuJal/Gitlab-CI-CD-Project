@@ -154,6 +154,43 @@ describe("GET /state", () => {
   });
 });
 
+describe("GET /run-logs", () => { 
+  test("Test that all state changes are saved and returned correctly", async done => {
+    try {
+      // Empty the run-log file
+      await fs.writeFileSync("/var/lib/messages/run-log.txt", "");
+    } catch (error) {
+      console.error(error);
+    } 
+
+    // Pause system (state -> PAUSED)
+    const res_paused = await server.put("/state/PAUSED");
+    expect(res_paused.status).toBe(200);
+
+    // Shut down system (state -> SHUTDOWN)
+    const res_shutdown = await server.put("/state/SHUTDOWN");
+    expect(res_shutdown.status).toBe(200);
+
+    // Initialize system (state -> INIT -> then RUNNING)
+    const res_init = await server.put("/state/INIT");
+    expect(res_init.status).toBe(200);
+
+    // Get logs
+    const res_logs = await server.get("/run-log");
+    expect(res_logs.status).toBe(200);
+
+    // Parse output to an array
+    const log_messages = res_logs.text.split("\n").slice(0, -1);
+    
+    // Check log messages are in expected format <ISO-date>: <STATE>
+    expect(log_messages[0].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^"\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): PAUSED"$/));
+    expect(log_messages[1].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^"\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): SHUTDOWN"$/));
+    expect(log_messages[2].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^"\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): INIT"$/));
+    expect(log_messages[3].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^"\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): RUNNING"$/));
+    done();
+  });
+});
+
 function sleep(ms) {
   return new Promise((resolve) => {
       setTimeout(resolve, ms);
