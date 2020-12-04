@@ -120,12 +120,12 @@ describe("PUT /state", () => {
   });
 
   test("Test setting system's state to SHUTDOWN", async done => {
-    jest.setTimeout(20000);
+    jest.setTimeout(30000);
     
     // Set system's state to SHUTDOWN
     const res = await server.put("/state/SHUTDOWN");
     expect(res.status).toBe(200);
-    
+
     const stopped_containers = res.body.stopped_containers;
 
     // Confirm that all containers were stopped
