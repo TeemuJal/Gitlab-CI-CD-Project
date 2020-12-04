@@ -102,7 +102,6 @@ app.put("/state/:new_state", async function (req, res) {
                   console.error(error);
                   res.status(500).send("Something went wrong.");
                 } else {
-                  console.log(stdout);
                   changeState(states.RUNNING);
                   const started_containers = stdout.split("\n").slice(0, -1);
                   res.send({ msg: "System initialized (wait about 20s for services to start)", started_containers: started_containers});
@@ -132,7 +131,6 @@ app.put("/state/:new_state", async function (req, res) {
                 console.error(error);
                 res.status(500).send("Something went wrong.");
               } else {
-                console.log(stdout);
                 changeState(states.SHUTDOWN);
                 const stopped_containers = stdout.split("\n").slice(0, -1);
                 res.send({ msg: "System shut down", stopped_containers: stopped_containers});
