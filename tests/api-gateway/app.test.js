@@ -130,7 +130,7 @@ describe("PUT /state", () => {
   });
 
   test("Test setting system's state to INIT while system is down", async done => {
-    jest.setTimeout(30000);
+    jest.setTimeout(45000);
     
     // Set system's state to INIT to start all containers
     const res = await server.put("/state/INIT");
@@ -140,6 +140,10 @@ describe("PUT /state", () => {
 
     // Confirm that all containers were started
     expect(started_containers).toEqual(system_containers);
+
+    // Wait for services to start
+    await sleep(20000);
+
     done();
   });
 });
@@ -155,10 +159,12 @@ describe("GET /state", () => {
 });
 
 describe("GET /run-logs", () => { 
-  test("Test that all state changes are saved and returned correctly", async done => {
+  test("Test that state changes are saved and returned correctly from the endpoint", async done => {
+    jest.setTimeout(10000);
+
     try {
       // Empty the run-log file
-      await fs.writeFileSync("/var/lib/messages/run-log.txt", "");
+      fs.writeFileSync("/var/lib/messages/run-log.txt", "");
     } catch (error) {
       console.error(error);
     } 
@@ -166,10 +172,6 @@ describe("GET /run-logs", () => {
     // Pause system (state -> PAUSED)
     const res_paused = await server.put("/state/PAUSED");
     expect(res_paused.status).toBe(200);
-
-    // Shut down system (state -> SHUTDOWN)
-    const res_shutdown = await server.put("/state/SHUTDOWN");
-    expect(res_shutdown.status).toBe(200);
 
     // Initialize system (state -> INIT -> then RUNNING)
     const res_init = await server.put("/state/INIT");
@@ -180,13 +182,12 @@ describe("GET /run-logs", () => {
     expect(res_logs.status).toBe(200);
 
     // Parse output to an array
-    const log_messages = res_logs.text.split("\n").slice(0, -1);
+    const log_messages = res_logs.body.toString("utf-8").split("\n").slice(0, -1);
     
-    // Check log messages are in expected format <ISO-date>: <STATE>
-    expect(log_messages[0].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^"\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): PAUSED"$/));
-    expect(log_messages[1].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^"\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): SHUTDOWN"$/));
-    expect(log_messages[2].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^"\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): INIT"$/));
-    expect(log_messages[3].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^"\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): RUNNING"$/));
+    // Check state changes were logged and logs are in expected format <ISO-date>: <STATE>
+    expect(log_messages[0].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): PAUSED$/));
+    expect(log_messages[1].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): INIT$/));
+    expect(log_messages[2].replace(/"([^"]+(?="))"/g, '$1')).toMatch(new RegExp(/^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z): RUNNING$/));
     done();
   });
 });
