@@ -74,18 +74,18 @@ app.put("/state/:new_state", async function (req, res) {
 
             // Initialize when system is already running or paused
             if (current_state !== states.SHUTDOWN) {
-            // Pause ORIG
-            await axios.post("http://orig:5000/pause");
-            // Reset message counter
-            await axios.post("http://orig:5000/reset_message_counter");
-            // Make sure queue is empty
-            await sleep(1000);
-            // Empty the message file
-            await fs.writeFileSync("/var/lib/messages/messages.txt", "");
-            // Start ORIG again
-            await axios.post("http://orig:5000/start");
-            current_state = states.RUNNING;
-            res.send("System initialized");
+              // Pause ORIG
+              await axios.post("http://orig:5000/pause");
+              // Reset message counter
+              await axios.post("http://orig:5000/reset_message_counter");
+              // Make sure queue is empty
+              await sleep(1000);
+              // Empty the message file
+              await fs.writeFileSync("/var/lib/messages/messages.txt", "");
+              // Start ORIG again
+              await axios.post("http://orig:5000/start");
+              current_state = states.RUNNING;
+              res.send("System initialized");
             } 
 
             // Initialize when system is shut down
@@ -149,6 +149,11 @@ app.put("/state/:new_state", async function (req, res) {
   } else {
     res.status(400).send("Invalid state.");
   } 
+});
+
+// Endpoint for getting the state of the system
+app.get("/state", async function (req, res) {
+  res.send(current_state);
 });
 
 function sleep(ms) {
