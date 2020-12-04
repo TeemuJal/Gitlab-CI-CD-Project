@@ -11,7 +11,8 @@ const states = {
   SHUTDOWN: "SHUTDOWN"
 };
 
-let current_state = states.RUNNING;
+let current_state;
+changeState(states.RUNNING);
 
 let system_containers;
 if (process.env.NODE_ENV === "test") {
@@ -46,7 +47,7 @@ app.put("/state/:new_state", async function (req, res) {
         case states.PAUSED: {
           try {
             const response = await axios.post("http://orig:5000/pause");
-            current_state = states.PAUSED;
+            changeState(states.PAUSED);
             res.send(response.data);
           } catch (error) {
             console.error(error);
@@ -59,7 +60,7 @@ app.put("/state/:new_state", async function (req, res) {
         case states.RUNNING: {
           try {
             const response = await axios.post("http://orig:5000/start");
-            current_state = states.RUNNING;
+            changeState(states.RUNNING);
             res.send(response.data);
           } catch (error) {
             console.error(error);
@@ -74,6 +75,7 @@ app.put("/state/:new_state", async function (req, res) {
 
             // Initialize when system is already running or paused
             if (current_state !== states.SHUTDOWN) {
+              changeState(states.INIT);
               // Pause ORIG
               await axios.post("http://orig:5000/pause");
               // Reset message counter
@@ -84,7 +86,7 @@ app.put("/state/:new_state", async function (req, res) {
               await fs.writeFileSync("/var/lib/messages/messages.txt", "");
               // Start ORIG again
               await axios.post("http://orig:5000/start");
-              current_state = states.RUNNING;
+              changeState(states.RUNNING);
               res.send("System initialized");
             } 
 
@@ -101,9 +103,9 @@ app.put("/state/:new_state", async function (req, res) {
                   res.status(500).send("Something went wrong.");
                 } else {
                   console.log(stdout);
-                  current_state = states.RUNNING;
+                  changeState(states.RUNNING);
                   const started_containers = stdout.split("\n").slice(0, -1);
-                  res.send({ msg: "System initialized", started_containers: started_containers});
+                  res.send({ msg: "System initialized (wait about 20s for services to start)", started_containers: started_containers});
                 }
               });
             }
@@ -131,7 +133,7 @@ app.put("/state/:new_state", async function (req, res) {
                 res.status(500).send("Something went wrong.");
               } else {
                 console.log(stdout);
-                current_state = states.SHUTDOWN;
+                changeState(states.SHUTDOWN);
                 const stopped_containers = stdout.split("\n").slice(0, -1);
                 res.send({ msg: "System shut down", stopped_containers: stopped_containers});
               }
@@ -155,6 +157,31 @@ app.put("/state/:new_state", async function (req, res) {
 app.get("/state", async function (req, res) {
   res.send(current_state);
 });
+
+// Endpoint for getting the run log of the system
+app.get("/run-log", async function (req, res) {
+  fs.readFile("/var/lib/messages/run-log.txt", function(err, data) {
+    if (err) {
+      res.status(500).send("Something went wrong.");
+    }
+    else {
+      res.send(data);
+    }
+  });
+});
+
+// Changes current state and logs the state change
+function changeState(new_state) {
+  current_state = new_state;
+  const logString = `${new Date().toISOString()}: ${new_state}\n`;
+  try {
+    fs.appendFile("/var/lib/messages/run-log.txt", logString, (err) => {
+      if (err) throw err;
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 function sleep(ms) {
   return new Promise((resolve) => {
