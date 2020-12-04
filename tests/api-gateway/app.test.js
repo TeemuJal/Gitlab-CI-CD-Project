@@ -5,13 +5,9 @@
 const app = require("../../api-gateway/app.js");
 const supertest = require("supertest");
 const fs = require("fs");
-let server;
+const server = supertest(app);
 
 const system_containers = ["orig-test", "imed-test", "obse-test", "httpserv-test", "rabbitmq-test"];
-
-beforeEach(() => {
-  server = supertest(app);
-});
 
 describe("GET /messages", () => { 
   test("Test that endpoint returns all messages registered with OBSE-service", async done => {
@@ -144,6 +140,16 @@ describe("PUT /state", () => {
 
     // Confirm that all containers were started
     expect(started_containers).toEqual(system_containers);
+    done();
+  });
+});
+
+describe("GET /state", () => { 
+  test("Test that endpoint returns the current state of the system", async done => {
+    const res = await server.get("/state");
+    expect(res.status).toBe(200);
+    // System should be in RUNNING state
+    expect(res.text).toBe("RUNNING");
     done();
   });
 });
