@@ -34,11 +34,14 @@ app.get("/messages", async function (req, res) {
 // Endpoint for changing the state of the system
 app.put("/state/:new_state", async function (req, res) {
   const new_state = req.params.new_state;
+
   // Check if given state is a valid state
   if (Object.values(states).indexOf(new_state) > -1) {
+
     // Change to new state if it's not the current state
     if (new_state !== current_state) {
       switch(new_state) {
+
         // Pause ORIG
         case states.PAUSED: {
           try {
@@ -51,6 +54,7 @@ app.put("/state/:new_state", async function (req, res) {
           }
           break;
         }
+
         // Start ORIG
         case states.RUNNING: {
           try {
@@ -63,9 +67,13 @@ app.put("/state/:new_state", async function (req, res) {
           } 
           break;
         }
+
         // Initialize system
         case states.INIT: {
           try {
+
+            // Initialize when system is already running or paused
+            if (current_state !== states.SHUTDOWN) {
             // Pause ORIG
             await axios.post("http://orig:5000/pause");
             // Reset message counter
@@ -78,12 +86,34 @@ app.put("/state/:new_state", async function (req, res) {
             await axios.post("http://orig:5000/start");
             current_state = states.RUNNING;
             res.send("System initialized");
+            } 
+
+            // Initialize when system is shut down
+            else { 
+              let dockerArguments = ["start"];
+              for (const container in system_containers) {
+                dockerArguments.push(system_containers[container]);
+              }
+              // Start containers
+              execFile("docker", dockerArguments, (error, stdout) => {
+                if (error) {
+                  console.error(error);
+                  res.status(500).send("Something went wrong.");
+                } else {
+                  console.log(stdout);
+                  current_state = states.RUNNING;
+                  const started_containers = stdout.split("\n").slice(0, -1);
+                  res.send({ msg: "System initialized", started_containers: started_containers});
+                }
+              });
+            }
           } catch (error) {
             console.error(error);
             res.status(500).send("Something went wrong.");
           } 
           break;
         }
+
         // Shut down the system
         case states.SHUTDOWN: {
           try {
@@ -101,6 +131,7 @@ app.put("/state/:new_state", async function (req, res) {
                 res.status(500).send("Something went wrong.");
               } else {
                 console.log(stdout);
+                current_state = states.SHUTDOWN;
                 const stopped_containers = stdout.split("\n").slice(0, -1);
                 res.send({ msg: "System shut down", stopped_containers: stopped_containers});
               }
